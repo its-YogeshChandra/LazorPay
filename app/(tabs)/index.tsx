@@ -3,10 +3,20 @@ import { LazorKitProvider, useWallet } from '@lazorkit/wallet-mobile-adapter'
 import { View, Text, Pressable, TouchableOpacity, SafeAreaView, StatusBar } from 'react-native';
 import { Fingerprint, ScanFace, Wallet, ArrowRight, ShieldCheck, KeyRound } from 'lucide-react-native';
 import * as Linking from "expo-linking"
-
+import { BuyWidget } from "@/components/buy";
+import { SwapWidget } from "@/components/swap";
+import { SendWidget } from "@/components/send";
+import { ReceiveWidget } from "@/components/receive";
 const paymaster_config =
 {
   paymasterUrl: "https://kora.devnet.lazorkit.com"
+}
+
+const modefunctionobject = {
+  send: SendWidget,
+  buy: BuyWidget,
+
+
 }
 
 export default function Index() {
