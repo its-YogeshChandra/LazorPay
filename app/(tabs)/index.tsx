@@ -14,9 +14,14 @@ export default function Index() {
   const value = useWallet();
   const redirect_url = Linking.createURL("/profile")
 
-  function connecttoportal() {
+  //function to connecting to portal 
+  async function connecttoportal() {
     console.log("pass key clicked ")
-    value.connect({ redirectUrl: redirect_url })
+    await value.connect({
+      redirectUrl: redirect_url,
+      onSuccess: (wallet) => console.log('Connected', wallet.smartWallet),
+      onFail: (error) => console.log('Connection failed', error)
+    })
   }
 
   //const figureland 
