@@ -17,6 +17,7 @@ const modefunctioobject = {
 
 type objkey = keyof typeof modefunctioobject;
 
+//function to set the mode 
 export default function Search() {
   const value = useWallet();
   const [balance, setBalance] = useState(0);
@@ -52,17 +53,6 @@ export default function Search() {
   }, [])
 
 
-  // function to set the mode 
-  const setModeFunction = (modevalue: String) => {
-    // take the argument from the buttons and set the mode 
-    const modes: String[] = ["swap", "receive", "buy", "send"]
-    //check if mode incloudes the mode value 
-    if (modes.includes(modevalue)) {
-      setMode(modevalue.toString())
-    } else {
-      console.error("wrong mode selected")
-    }
-  }
 
   //function to render the modes 
   function moderenderhandlerfunction() {
@@ -78,6 +68,17 @@ export default function Search() {
     }
   }
 
+  // function to set the mode 
+  const setModeFunction = (modevalue: String) => {
+    // take the argument from the buttons and set the mode 
+    const modes: String[] = ["swap", "receive", "buy", "send"]
+    //check if mode incloudes the mode value 
+    if (modes.includes(modevalue)) {
+      setMode(modevalue.toString())
+    } else {
+      console.error("wrong mode selected")
+    }
+  }
 
   return (
     <SafeAreaView className="flex-1 bg-slate-950 pt-10">
@@ -116,10 +117,39 @@ export default function Search() {
 
         {/* 3. Quick Actions Row */}
         <View className="flex-row justify-between px-4 mb-10">
-          <QuickActionButton icon={<ArrowUp size={24} color="white" />} label="Send" />
-          <QuickActionButton icon={<ArrowDown size={24} color="white" />} label="Receive" />
-          <QuickActionButton icon={<Plus size={24} color="white" />} label="Buy" />
-          <QuickActionButton icon={<ArrowUpDown size={24} color="white" />} label="Swap" />
+          <View className="items-center space-y-2">
+            <TouchableOpacity className="w-14 h-14 bg-slate-800 rounded-full items-center justify-center border border-slate-700 active:bg-slate-700"
+              onPress={() => { setModeFunction("send") }}>
+              <ArrowUp color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text className="text-slate-400 text-xs font-medium">Send</Text>
+          </View>
+          <View className="items-center space-y-2">
+            <TouchableOpacity className="w-14 h-14 bg-slate-800 rounded-full items-center justify-center border border-slate-700 active:bg-slate-700"
+              onPress={() => { setModeFunction("receive") }}>
+              <ArrowDown color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text className="text-slate-400 text-xs font-medium">Receive</Text>
+          </View>
+          <View className="items-center space-y-2">
+            <TouchableOpacity className="w-14 h-14 bg-slate-800 rounded-full items-center justify-center border border-slate-700 active:bg-slate-700"
+              onPress={() => { setModeFunction("buy") }}>
+              <Plus color="#FFFFFF" />
+            </TouchableOpacity>
+            <Text className="text-slate-400 text-xs font-medium">Buy</Text>
+          </View>
+          <View className="items-center space-y-2">
+            <TouchableOpacity className="w-14 h-14 bg-slate-800 rounded-full  items-center justify-center border border-slate-700 active:bg-slate-700"
+              onPress={() => { setModeFunction("swap") }}>
+              <ArrowUpDown color="#FFFFFF" />
+            </TouchableOpacity >
+            <Text className="text-slate-400 text-xs font-medium">Swap</Text>
+          </View>
+
+          {/*   <QuickActionButton icon={<ArrowUp size={24} color="white" />} label="Send" /> */}
+          {/*   <QuickActionButton icon={<ArrowDown size={24} color="white" />} label="Receive" /> */}
+          {/*   <QuickActionButton icon={<Plus size={24} color="white" />} label="Buy" /> */}
+          {/*   <QuickActionButton icon={<ArrowUpDown size={24} color="white" />} label="Swap" /> */}
         </View>
 
         {/* render the function according to the modes */}
@@ -132,13 +162,14 @@ export default function Search() {
 }
 
 // Helper Component for Action Buttons
-function QuickActionButton({ icon, label }: { icon: any, label: string }) {
-  return (
-    <View className="items-center space-y-2">
-      <TouchableOpacity className="w-14 h-14 bg-slate-800 rounded-full items-center justify-center border border-slate-700 active:bg-slate-700">
-        {icon}
-      </TouchableOpacity>
-      <Text className="text-slate-400 text-xs font-medium">{label}</Text>
-    </View>
-  );
-}
+// function QuickActionButton({ icon, label, payload }: { icon: any, label: string, payload: string }) {
+//   return (
+//     <View className="items-center space-y-2">
+//       <TouchableOpacity className="w-14 h-14 bg-slate-800 rounded-full items-center justify-center border border-slate-700 active:bg-slate-700"
+//         onPress={() => { }}>
+//         {icon}
+//       </TouchableOpacity>
+//       <Text className="text-slate-400 text-xs font-medium">{label}</Text>
+//     </View>
+//   );
+// }
