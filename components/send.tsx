@@ -20,9 +20,10 @@ import {
   signTransactionMessageWithSigners
 } from "@solana/kit";
 import { getTransferSolInstruction } from "@solana-program/system";
-import { LAMPORTS_PER_SOL, SystemProgram, PublicKey, Keypair } from '@solana/web3.js';
+import { LAMPORTS_PER_SOL, SystemProgram, PublicKey, Keypair, Transaction } from '@solana/web3.js';
 import assert from 'assert';
 import * as Linking from "expo-linking"
+import { sign } from 'crypto';
 
 export function SendWidget() {
   const value = maker.useWallet()
@@ -32,7 +33,7 @@ export function SendWidget() {
 
   //fetch the balance from wallet
   //fetch wallet on every render
-  const redirect_url = Linking.createURL("../app/(tabs)/search.tsx")
+  const redirect_url = Linking.createURL("/")
 
 
   useEffect(() => {
@@ -55,32 +56,43 @@ export function SendWidget() {
     fetchwalletBalance()
   }, [])
 
-  //function to send trnsaction 
-  const sendTransaction = async () => {
+  //function to send trnsaction
 
-    //call the lazorkit function 
-    const { signAndSendTransaction } = value;
-    if (!value.smartWalletPubkey) {
-      console.error("pubkey not present ")
-      return
+  const sendTransaction = async () => {
+    try {
+      //call the lazorkit function 
+      const { signAndSendTransaction } = value;
+      if (!value.smartWalletPubkey) {
+        console.error("pubkey not present ")
+        return
+      }
+
+      //making publickey out of recipient main address 
+      const recipeintmainAddress = new PublicKey(recipientAddress)
+
+      //calling system program for transfer 
+      const transferInstruction = SystemProgram.transfer({
+        fromPubkey: value.smartWalletPubkey,
+        toPubkey: recipeintmainAddress,
+        lamports: 1 * LAMPORTS_PER_SOL
+      })
+
+      const signature = await signAndSendTransaction({
+        instructions: [transferInstruction],
+        transactionOptions: {
+          feeToken: 'SOL',
+          clusterSimulation: 'devnet'
+        },
+      },
+        { redirectUrl: redirect_url },
+      )
+      console.log("transaction signature : " + signature)
+    } catch (error) {
+      //handle error if something breaks 
+      console.log("error is : ")
+      console.error(error)
     }
 
-    const recipeintmainAddress = new PublicKey(recipientAddress)
-    const transferInstruction = SystemProgram.transfer({
-      fromPubkey: value.smartWalletPubkey,
-      toPubkey: recipeintmainAddress,
-      lamports: 1 * LAMPORTS_PER_SOL
-    })
-
-    const signature = await signAndSendTransaction({
-      instructions: [transferInstruction],
-      transactionOptions: {
-        feeToken: 'SOL',
-        clusterSimulation: 'devnet'
-      },
-    },
-      { redirectUrl: redirect_url },
-    )
   }
 
   return (
@@ -96,8 +108,11 @@ export function SendWidget() {
             placeholder="0"
             placeholderTextColor="#334155"
             keyboardType="numeric"
-            value={sendValue}
-            onChangeText={(text) => setSendValue(parseInt(text))}
+            value={sendValue.toString()}
+            onChangeText={(text) => {
+              const numval = parseInt(text)
+              setSendValue(isNaN(numval) ? 0 : numval)
+            }}
             autoFocus={false}
           />
         </View>
@@ -120,7 +135,8 @@ export function SendWidget() {
         </View>
       </View>
 
-      <TouchableOpacity className="w-full bg-blue-600 h-14 rounded-2xl mt-2 flex-row items-center justify-center space-x-2 active:bg-blue-700">
+      <TouchableOpacity className="w-full bg-blue-600 h-14 rounded-2xl mt-2 flex-row items-center justify-center space-x-2 active:bg-blue-700"
+        onPress={() => { sendTransaction() }}>
         <Text className="text-white font-bold text-lg">Send Now</Text>
         <ArrowRight size={20} color="white" />
       </TouchableOpacity>
