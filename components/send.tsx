@@ -1,8 +1,88 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity } from 'react-native';
-import { ArrowRight, Clipboard, Scan } from 'lucide-react-native';
+import { ArrowRight, Clipboard, Scan, Wallet } from 'lucide-react-native';
+import maker from '@lazorkit/wallet-mobile-adapter';
+import { WalletActions } from '@lazorkit/wallet-mobile-adapter';
+import {
+  airdropFactory,
+  appendTransactionMessageInstructions,
+  createSolanaRpc,
+  createSolanaRpcSubscriptions,
+  createTransactionMessage,
+  generateKeyPairSigner,
+  getSignatureFromTransaction,
+  lamports,
+  nonDivisibleSequentialInstructionPlan,
+  pipe,
+  sendAndConfirmTransactionFactory,
+  setTransactionMessageFeePayerSigner,
+  setTransactionMessageLifetimeUsingBlockhash,
+  signTransactionMessageWithSigners
+} from "@solana/kit";
+import { getTransferSolInstruction } from "@solana-program/system";
+import { LAMPORTS_PER_SOL, SystemProgram, PublicKey, Keypair } from '@solana/web3.js';
+import assert from 'assert';
+import * as Linking from "expo-linking"
 
 export function SendWidget() {
+  const value = maker.useWallet()
+  const [balance, setBalance] = useState(0)
+  const [sendValue, setSendValue] = useState(0)
+  const [recipientAddress, setRecipientAddress] = useState<string>('')
+
+  //fetch the balance from wallet
+  //fetch wallet on every render
+  const redirect_url = Linking.createURL("../app/(tabs)/search.tsx")
+
+
+  useEffect(() => {
+    const fetchwalletBalance = async () => {
+      //call the connection endpoint of the useWallet
+      if (!value.smartWalletPubkey || value.smartWalletPubkey == null) {
+        console.error("error while fetching publickey")
+      } else {
+        try {
+          const data = await value.connection.getBalance(value.smartWalletPubkey)
+          if (data) {
+            const totalbal = data / 1000_000_000
+            setBalance(totalbal)
+          }
+        } catch (error) {
+          console.error(error)
+        }
+      }
+    }
+    fetchwalletBalance()
+  }, [])
+
+  //function to send trnsaction 
+  const sendTransaction = async () => {
+
+    //call the lazorkit function 
+    const { signAndSendTransaction } = value;
+    if (!value.smartWalletPubkey) {
+      console.error("pubkey not present ")
+      return
+    }
+
+    const recipeintmainAddress = new PublicKey(recipientAddress)
+    const transferInstruction = SystemProgram.transfer({
+      fromPubkey: value.smartWalletPubkey,
+      toPubkey: recipeintmainAddress,
+      lamports: 1 * LAMPORTS_PER_SOL
+    })
+
+    const signature = await signAndSendTransaction({
+      instructions: [transferInstruction],
+      transactionOptions: {
+        feeToken: 'SOL',
+        clusterSimulation: 'devnet'
+      },
+    },
+      { redirectUrl: redirect_url },
+    )
+  }
+
   return (
     <View>
       <Text className="text-white font-bold text-xl mb-4">Send Crypto</Text>
@@ -16,10 +96,12 @@ export function SendWidget() {
             placeholder="0"
             placeholderTextColor="#334155"
             keyboardType="numeric"
+            value={sendValue}
+            onChangeText={(text) => setSendValue(parseInt(text))}
             autoFocus={false}
           />
         </View>
-        <Text className="text-slate-500 text-sm mt-2">Available: $14,230.50</Text>
+        <Text className="text-slate-500 text-sm mt-2">Available: {balance}</Text>
       </View>
 
       {/* Address Input */}
@@ -29,6 +111,8 @@ export function SendWidget() {
           className="flex-1 text-white text-base"
           placeholder="Paste address or ENS..."
           placeholderTextColor="#475569"
+          value={recipientAddress}
+          onChangeText={(text) => setRecipientAddress(text)}
         />
         <View className="flex-row space-x-3 ml-2">
           <TouchableOpacity className="p-1"><Clipboard size={18} color="#94a3b8" /></TouchableOpacity>
